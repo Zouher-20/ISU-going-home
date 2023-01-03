@@ -1,5 +1,4 @@
 import City from "./City";
-import Index from "./Index";
 import Station from "./Station";
 import Way from "./Way";
 
@@ -10,6 +9,8 @@ export default class State {
   parent: State | null;
   currentStation: Station;
   currentWay: Way | null;
+  pathHeuristic: number;
+  city: City;
 
   constructor(
     timeCost: number,
@@ -17,7 +18,9 @@ export default class State {
     currentHealth: number,
     currentStation: Station,
     parent: State | null = null,
-    currentWay: Way | null = null
+    currentWay: Way | null = null,
+    city: City,
+    pathHeuristic = 0
   ) {
     this.timeCost = timeCost;
     this.currentMoney = currentMoney;
@@ -25,9 +28,8 @@ export default class State {
     this.currentStation = currentStation;
     this.parent = parent;
     this.currentWay = currentWay;
-  }
-  isFinal(): boolean {
-    return false;
+    this.city = city;
+    this.pathHeuristic = pathHeuristic;
   }
 
   canMove(way: Way, transportType: string): boolean {
@@ -39,9 +41,11 @@ export default class State {
     return true;
   }
 
-  getNextStates(thisState: State, city: City): Array<State> {
+  getNextStates(thisState: State): Array<State> {
     var nextSates: Array<State> = [];
-    var nextStations = city.cityGraph.get(this.currentStation);
+    var nextStations = this.city.cityGraph.get(this.currentStation);
+    console.log("next stations", nextStations);
+
     nextStations?.forEach((el) => {
       var nextStation = el.station;
 
@@ -56,10 +60,15 @@ export default class State {
           nextMoneyIfTaxi,
           nextHealth,
           nextStation,
-          thisState
+          thisState,
+          el.way,
+          this.city,
+          thisState.pathHeuristic + thisState.heuristic()
         );
         nextSates.push(nextState);
       }
+      console.log("next station if taxi", this.canMove(el.way, "Taxi"));
+
       if (this.canMove(el.way, "Bus")) {
         var nextTimeCostIfBus = el.way.getTimeCost("Bus") + this.timeCost;
 
@@ -75,10 +84,15 @@ export default class State {
           nextMoneyIfBus,
           nextHealth,
           nextStation,
-          thisState
+          thisState,
+          el.way,
+          this.city,
+          thisState.pathHeuristic + thisState.heuristic()
         );
         nextSates.push(nextState);
       }
+      console.log("next station if Bus", this.canMove(el.way, "Bus"));
+
       if (this.canMove(el.way, "Walking")) {
         var nextTimeCostIfWalking =
           el.way.getTimeCost("Walking") + this.timeCost;
@@ -88,15 +102,41 @@ export default class State {
           this.currentMoney,
           nextHealth,
           nextStation,
-          thisState
+          thisState,
+          el.way,
+          this.city,
+          thisState.pathHeuristic + thisState.heuristic()
         );
         nextSates.push(nextState);
       }
+      console.log("next station if Walking", this.canMove(el.way, "Walking"));
     });
     return nextSates;
   }
+  isEqual(state: State): boolean {
+    return (
+      this.currentHealth === state.currentHealth &&
+      this.currentMoney === state.currentMoney &&
+      this.timeCost === state.timeCost &&
+      this.currentWay !== null &&
+      this.currentWay.isEqual(state.currentWay) &&
+      this.currentStation.isEqual(state.currentStation)
+    );
+  }
 
-  // heuristic() : number {}
-
-  // checkIfFinal(): boolean {}
+  isFinal(): boolean {
+    return false;
+  }
+  checkIfFinal(): boolean {
+    if (this.currentStation.isHome) return true;
+    return false;
+  }
+  heuristic(): number {
+    var res = 0;
+    res += 100 - this.currentHealth;
+    res += this.timeCost;
+    // TODO Change 100 to actual init money
+    res += 100 - this.currentMoney;
+    return res;
+  }
 }
