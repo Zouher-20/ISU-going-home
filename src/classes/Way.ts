@@ -10,9 +10,6 @@ export default class Way {
   taxiSpeed: number;
   from: Station;
   to: Station;
-  higherMoney: boolean;
-  higherHealth: boolean;
-  best: boolean;
 
   constructor(
     id: number,
@@ -23,10 +20,7 @@ export default class Way {
     busSpeed: number,
     taxiSpeed: number,
     from: Station,
-    to: Station,
-    higherMoney: boolean,
-    higherHealth: boolean,
-    best: boolean
+    to: Station
   ) {
     this.id = id;
     this.dist = dist;
@@ -37,9 +31,6 @@ export default class Way {
     this.taxiSpeed = taxiSpeed;
     this.from = from;
     this.to = to;
-    this.higherMoney = higherMoney;
-    this.higherHealth = higherHealth;
-    this.best = best;
   }
 
   isEqual(way: Way | null): boolean {

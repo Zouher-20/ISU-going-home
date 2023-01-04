@@ -5,13 +5,32 @@ export default class AStar {
   resultStates: Array<State>;
   visited: Array<State>;
   ansState: State | null;
-  arrayAns: Array<State>;
+  arrayAns: PriorityQueue<State>;
 
-  constructor() {
+  constructor(isBestMoney: boolean, isBestHealth: boolean, isBest: boolean) {
     this.resultStates = [];
     this.visited = [];
-    this.arrayAns = [];
     this.ansState = null;
+
+    if (isBestMoney) {
+      this.arrayAns = new PriorityQueue({
+        comparator: function (a: State, b: State) {
+          return a.currentMoney - b.currentMoney;
+        },
+      });
+    } else if (isBestHealth) {
+      this.arrayAns = new PriorityQueue({
+        comparator: function (a: State, b: State) {
+          return a.currentHealth - b.currentHealth;
+        },
+      });
+    } else {
+      this.arrayAns = new PriorityQueue({
+        comparator: function (a: State, b: State) {
+          return b.heuristic() - a.heuristic();
+        },
+      });
+    }
   }
 
   getResult(): Array<State> {
@@ -33,19 +52,20 @@ export default class AStar {
     var queue = new PriorityQueue({
       comparator: function (a: State, b: State) {
         return (
-          b.pathHeuristic + b.heuristic() - (a.pathHeuristic + a.heuristic())
+          a.pathHeuristic + a.heuristic() - (b.pathHeuristic + b.heuristic())
         );
       },
     });
     queue.queue(initState);
     while (queue.length > 0) {
       var currentState: State = queue.dequeue();
+      console.log("queue best state", currentState);
 
       if (currentState.checkIfFinal()) {
         console.log("finalState", currentState);
-        this.arrayAns.push(currentState);
-        // this.ansState = currentState;
-        // break;
+        // this.arrayAns.queue(currentState);
+        this.ansState = currentState;
+        break;
       }
       const isVisited = this.checkIfVisited(currentState);
 
@@ -55,6 +75,7 @@ export default class AStar {
         this.visited.push(currentState);
       }
       var nextStates: Array<State> = currentState.getNextStates(currentState);
+      console.log("queue", queue);
 
       for (let index = 0; index < nextStates.length; index++) {
         const nextState = nextStates[index];
@@ -63,6 +84,7 @@ export default class AStar {
     }
 
     console.log("final astar", this.ansState);
+    console.log("final astar queue", this.arrayAns);
   }
 
   getAnsPath() {

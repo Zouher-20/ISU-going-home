@@ -1,71 +1,80 @@
 <script setup lang="ts">
-  import { reactive } from "vue";
-  import Station from "./classes/Station";
-  import Way from "./classes/Way";
-  import City from "./classes/City";
-  import State from "./classes/State";
-  import AStar from "./classes/AStar";
-  var Stations: Array<Station> = reactive([]);
-  var ways: Array<Way> = reactive([]);
-  var city;
-  var aStar = new AStar();
-  var initWay = {
-    dist: 0,
-    busName: "",
-    canBus: false,
-    canTaxi: false,
-    busSpeed: 0,
-    taxiSpeed: 0,
-    from: null,
-    to: null,
-    higherMoney: false,
-    higherHealth: false,
-    best: false,
-  };
-  var way = reactive({ ...initWay });
+import { reactive } from "vue";
+import Station from "./classes/Station";
+import Way from "./classes/Way";
+import City from "./classes/City";
+import State from "./classes/State";
+import AStar from "./classes/AStar";
+var Stations: Array<Station> = reactive([]);
+var ways: Array<Way> = reactive([]);
+var city;
+var bestModel = {
+  higherMoney: false,
+  higherHealth: false,
+  best: false,
+};
+var initWay = {
+  dist: 0,
+  busName: "",
+  canBus: false,
+  canTaxi: false,
+  busSpeed: 0,
+  taxiSpeed: 0,
+  from: null,
+  to: null,
+};
+var way = reactive({ ...initWay });
 
-  var initStation = {
-    taxiTime: 0,
-    busTime: 0,
-    isHome: false,
-    trans: "",
-  };
-  var station = reactive({ ...initStation });
+var initStation = {
+  taxiTime: 0,
+  busTime: 0,
+  isHome: false,
+  trans: "",
+};
+var station = reactive({ ...initStation });
 
-  function addStation() {
-    var toAdd = new Station(
-      Stations.length,
-      station.busTime,
-      station.taxiTime,
-      station.isHome,
-      station.trans
-    );
-    Stations.push(toAdd);
+function addStation() {
+  var toAdd = new Station(
+    Stations.length,
+    station.busTime,
+    station.taxiTime,
+    station.isHome,
+    station.trans
+  );
+  Stations.push(toAdd);
 
-    // station = reactive({ ...initStation });
-  }
-  function addWay() {
-    var toAdd = new Way(
-      ways.length,
-      way.dist,
-      way.busName,
-      way.canBus,
-      way.canTaxi,
-      way.busSpeed,
-      way.taxiSpeed,
-      way.from,
-      way.to,
-      way.higherMoney,
-      way.higherHealth,
-      way.best
-    );
-    ways.push(toAdd);
-  }
-  function solve() {
-    city = new City(Stations, ways);
-    var initState = new State(0, 5000, 100, Stations[0], null, null, city);
-    aStar.solve(initState);
-  }
+  // station = reactive({ ...initStation });
+}
+function addWay() {
+  var toAdd = new Way(
+    ways.length,
+    way.dist,
+    way.busName,
+    way.canBus,
+    way.canTaxi,
+    way.busSpeed,
+    way.taxiSpeed,
+    way.from,
+    way.to
+  );
+  ways.push(toAdd);
+}
+function solve() {
+  var aStar = new AStar(
+    bestModel.higherMoney,
+    bestModel.higherHealth,
+    bestModel.best
+  );
+  city = new City(
+    Stations,
+    ways,
+    bestModel.higherMoney,
+    bestModel.higherHealth,
+    bestModel.best
+  );
+  var initState = new State(0, 5000, 100, Stations[0], null, null, city);
+  aStar.solve(initState);
+}
 </script>
 
 <template>
@@ -218,27 +227,29 @@
         <button @click="solve">solve</button>
       </div>
       <div class="form-input" style="margin-right: 40px">
-        <label for="higher-money">Higher Money less health </label>
+        <label for="higher-money">With least money cost </label>
         <input
-          v-model="way.higherMoney"
+          v-model="bestModel.higherMoney"
           type="checkbox"
           id="higher-money"
           name="higherMoney"
         />
       </div>
       <div class="form-input" style="margin-right: 40px">
-        <label for="higher-health">Higher health less Money</label>
+        <label for="higher-health">With least health loss</label>
         <input
-          v-model="way.higherHealth"
+          v-model="bestModel.higherHealth"
           type="checkbox"
           id="higher-health"
           name="higherHealth"
         />
       </div>
       <div class="form-input">
-        <label for="higher-health">the Best Time</label>
+        <label for="higher-health"
+          >with Best Time , least money cost , least health loss</label
+        >
         <input
-          v-model="way.best"
+          v-model="bestModel.best"
           type="checkbox"
           id="higher-health"
           name="higherHealth"
@@ -272,44 +283,44 @@
 </template>
 
 <style>
-  .solve-btn {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    margin-bottom: 15px;
-  }
-  .form {
-    display: grid;
-    grid-template-columns: auto auto auto auto;
-    column-gap: 10px;
-    align-items: center;
-  }
-  .form-way {
-    display: grid;
-    grid-template-columns: auto auto auto auto auto auto auto auto auto;
-    column-gap: 10px;
-    align-items: center;
-  }
-  .form-input {
-    margin-bottom: 10px;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    align-items: flex-start;
-  }
-  .form-input input[type="number"],
-  .form-input input[type="text"] {
-    flex-shrink: 1;
-    padding-left: 1rem;
-    padding-right: 1rem;
-    font-size: 1rem;
-    border: 1px solid var(--blue);
-    border-radius: var(--rounded-btn, 0.5rem);
-    height: 2rem;
-    font-size: 0.875rem;
-    line-height: 1.25rem;
-  }
-  .form-input input:focus {
-    outline: rgb(33, 33, 141) solid 3px;
-  }
+.solve-btn {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+.form {
+  display: grid;
+  grid-template-columns: auto auto auto auto;
+  column-gap: 10px;
+  align-items: center;
+}
+.form-way {
+  display: grid;
+  grid-template-columns: auto auto auto auto auto auto auto auto auto;
+  column-gap: 10px;
+  align-items: center;
+}
+.form-input {
+  margin-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: flex-start;
+}
+.form-input input[type="number"],
+.form-input input[type="text"] {
+  flex-shrink: 1;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  font-size: 1rem;
+  border: 1px solid var(--blue);
+  border-radius: var(--rounded-btn, 0.5rem);
+  height: 2rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+.form-input input:focus {
+  outline: rgb(33, 33, 141) solid 3px;
+}
 </style>

@@ -32,15 +32,9 @@ export default class State {
     this.pathHeuristic = pathHeuristic;
   }
   heuristic(): number {
-    if (this.currentWay && this.currentWay.higherMoney) {
-      var res = 0;
-      res += 5000 - this.currentMoney;
-      return res;
-    } else if (this.currentWay && this.currentWay.higherHealth) {
-      var res = 0;
-      res += 100 - this.currentHealth;
-      return res;
-    } else {
+    if (this.city.higherMoney) return 5000 - this.currentMoney;
+    else if (this.city.higherHealth) return 100 - this.currentHealth;
+    else {
       var res = 0;
       res += 100 - this.currentHealth;
       res += this.timeCost;
