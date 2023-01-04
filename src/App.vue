@@ -1,80 +1,82 @@
 <script setup lang="ts">
-import { reactive } from "vue";
-import Station from "./classes/Station";
-import Way from "./classes/Way";
-import City from "./classes/City";
-import State from "./classes/State";
-import AStar from "./classes/AStar";
-var Stations: Array<Station> = reactive([]);
-var ways: Array<Way> = reactive([]);
-var city;
-var bestModel = {
-  higherMoney: false,
-  higherHealth: false,
-  best: false,
-};
-var initWay = {
-  dist: 0,
-  busName: "",
-  canBus: false,
-  canTaxi: false,
-  busSpeed: 0,
-  taxiSpeed: 0,
-  from: null,
-  to: null,
-};
-var way = reactive({ ...initWay });
+  import { reactive } from "vue";
+  import Station from "./classes/Station";
+  import Way from "./classes/Way";
+  import City from "./classes/City";
+  import State from "./classes/State";
+  import AStar from "./classes/AStar";
+  var Stations: Array<Station> = reactive([]);
+  var ways: Array<Way> = reactive([]);
+  var city;
+  var bestModel = {
+    higherMoney: false,
+    higherHealth: false,
+    best: false,
+  };
+  var initWay = {
+    dist: 0,
+    busName: "",
+    canBus: false,
+    canTaxi: false,
+    busSpeed: 0,
+    taxiSpeed: 0,
+    from: null,
+    to: null,
+  };
+  var way = reactive({ ...initWay });
 
-var initStation = {
-  taxiTime: 0,
-  busTime: 0,
-  isHome: false,
-  trans: "",
-};
-var station = reactive({ ...initStation });
+  var initStation = {
+    taxiTime: 0,
+    busTime: 0,
+    isHome: false,
+  };
+  var station = reactive({ ...initStation });
 
-function addStation() {
-  var toAdd = new Station(
-    Stations.length,
-    station.busTime,
-    station.taxiTime,
-    station.isHome,
-    station.trans
-  );
-  Stations.push(toAdd);
+  function addStation() {
+    var toAdd = new Station(
+      Stations.length,
+      station.busTime,
+      station.taxiTime,
+      station.isHome
+    );
+    Stations.push(toAdd);
 
-  // station = reactive({ ...initStation });
-}
-function addWay() {
-  var toAdd = new Way(
-    ways.length,
-    way.dist,
-    way.busName,
-    way.canBus,
-    way.canTaxi,
-    way.busSpeed,
-    way.taxiSpeed,
-    way.from,
-    way.to
-  );
-  ways.push(toAdd);
-}
-function solve() {
-  var aStar = new AStar(
-    bestModel.higherMoney,
-    bestModel.higherHealth,
-    bestModel.best
-  );
-  city = new City(
-    Stations,
-    ways,
-    bestModel.higherMoney,
-    bestModel.higherHealth,
-    bestModel.best
-  );
-  var initState = new State(0, 5000, 100, Stations[0], null, null, city);
-  aStar.solve(initState);
-}
+    // station = reactive({ ...initStation });
+  }
+  function addWay() {
+    var toAdd = new Way(
+      ways.length,
+      way.dist,
+      way.busName,
+      way.canBus,
+      way.canTaxi,
+      way.busSpeed,
+      way.taxiSpeed,
+      way.from,
+      way.to
+    );
+    ways.push(toAdd);
+  }
+  var ansPath: Array<State> = reactive([]);
+  function solve() {
+    var aStar = new AStar(
+      bestModel.higherMoney,
+      bestModel.higherHealth,
+      bestModel.best
+    );
+    city = new City(
+      Stations,
+      ways,
+      bestModel.higherMoney,
+      bestModel.higherHealth,
+      bestModel.best
+    );
+    var initState = new State(0, 5000, 100, Stations[0], null, null, city);
+    aStar.solve(initState);
+    while (ansPath.length != 0) ansPath.pop();
+    ansPath.push(...aStar.getAnsPath());
+    console.log("ansPath.length", ansPath.length);
+  }
 </script>
 
 <template>
@@ -257,70 +259,76 @@ function solve() {
       </div>
     </div>
 
-    <!-- <div
+    <div
       style="
         display: flex;
         gap: 40px;
         justify-content: center;
-        width: 50vw;
+        width: %100;
         flex-wrap: wrap;
         margin-top: 10px;
       "
-      v-if="solvedAStar"
     >
-      <div class="moves-cont" style="width: 100%; margin: 20px 0px">
-        A* States Visited : {{ aStar.visited.length }}
+      <div v-for="(p, i) in ansPath" :key="i" class="form-way">
+        <div class="ans-div">
+          Health: {{ p.currentHealth }}<br />Money: {{ p.currentMoney
+          }}<br />Time : {{ p.timeCost }} <br />
+          transport: {{ p.currentTrans }} <br />
+          <div v-if="p.currentWay">
+            Way distans: {{ p.currentWay.dist }} <br />
+          </div>
+          <div v-if="p.currentStation.isHome">is Home</div>
+        </div>
       </div>
-      <table v-for="state in aStar.visited" class="state-grid">
-        <tbody>
-          <tr v-for="(row, i) in state.getGrid()">
-            <td v-for="(cell, j) in row" :class="`bg-${cell}`"></td>
-          </tr>
-        </tbody>
-      </table>
-    </div> -->
+    </div>
   </div>
 </template>
 
 <style>
-.solve-btn {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  margin-bottom: 15px;
-}
-.form {
-  display: grid;
-  grid-template-columns: auto auto auto auto;
-  column-gap: 10px;
-  align-items: center;
-}
-.form-way {
-  display: grid;
-  grid-template-columns: auto auto auto auto auto auto auto auto auto;
-  column-gap: 10px;
-  align-items: center;
-}
-.form-input {
-  margin-bottom: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  align-items: flex-start;
-}
-.form-input input[type="number"],
-.form-input input[type="text"] {
-  flex-shrink: 1;
-  padding-left: 1rem;
-  padding-right: 1rem;
-  font-size: 1rem;
-  border: 1px solid var(--blue);
-  border-radius: var(--rounded-btn, 0.5rem);
-  height: 2rem;
-  font-size: 0.875rem;
-  line-height: 1.25rem;
-}
-.form-input input:focus {
-  outline: rgb(33, 33, 141) solid 3px;
-}
+  .ans-div {
+    grid-column: 3;
+    display: grid;
+    /* flex-direction: column; */
+    gap: 2px;
+  }
+  .solve-btn {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 15px;
+  }
+  .form {
+    display: grid;
+    grid-template-columns: auto auto auto auto;
+    column-gap: 10px;
+    align-items: center;
+  }
+  .form-way {
+    display: grid;
+    grid-template-columns: auto auto auto auto auto auto auto auto auto;
+    column-gap: 10px;
+    align-items: center;
+  }
+  .form-input {
+    margin-bottom: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    align-items: flex-start;
+  }
+  .form-input input[type="number"],
+  .form-input input[type="text"] {
+    flex-shrink: 1;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    font-size: 1rem;
+    border: 1px solid var(--blue);
+    border-radius: var(--rounded-btn, 0.5rem);
+    height: 2rem;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+  }
+  .form-input input:focus {
+    outline: rgb(33, 33, 141) solid 3px;
+  }
 </style>

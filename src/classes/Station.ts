@@ -3,19 +3,11 @@ export default class Station {
   busTime: number;
   taxiTime: number;
   isHome: boolean;
-  trans: string;
-  constructor(
-    id: number,
-    busTime = 0,
-    taxiTime = 0,
-    isHome = false,
-    trans = ""
-  ) {
+  constructor(id: number, busTime = 0, taxiTime = 0, isHome = false) {
     this.busTime = busTime;
     this.taxiTime = busTime;
     this.isHome = isHome;
     this.id = id;
-    this.trans = trans;
   }
 
   isEqual(station: Station): boolean {

@@ -11,6 +11,7 @@ export default class State {
   currentWay: Way | null;
   pathHeuristic: number;
   city: City;
+  currentTrans: string | null;
 
   constructor(
     timeCost: number,
@@ -20,7 +21,8 @@ export default class State {
     parent: State | null = null,
     currentWay: Way | null = null,
     city: City,
-    pathHeuristic = 0
+    pathHeuristic = 0,
+    currentTrans: string | null = null
   ) {
     this.timeCost = timeCost;
     this.currentMoney = currentMoney;
@@ -30,6 +32,7 @@ export default class State {
     this.currentWay = currentWay;
     this.city = city;
     this.pathHeuristic = pathHeuristic;
+    this.currentTrans = currentTrans;
   }
   heuristic(): number {
     if (this.city.higherMoney) return 5000 - this.currentMoney;
@@ -62,7 +65,7 @@ export default class State {
       // i Create three new States by the three transportations
 
       if (this.canMove(el.way, "Taxi")) {
-        nextStation.trans = "Taxi";
+        // this.currentTrans = "Taxi";
         var nextTimeCostIfTaxi = el.way.getTimeCost("Taxi") + this.timeCost;
         var nextMoneyIfTaxi = this.currentMoney - el.way.getMoneyCost("Taxi");
         var nextHealth = this.currentHealth + 5 * el.way.dist;
@@ -74,19 +77,21 @@ export default class State {
           thisState,
           el.way,
           this.city,
-          thisState.pathHeuristic + thisState.heuristic()
+          thisState.pathHeuristic + thisState.heuristic(),
+          "Taxi"
         );
         nextSates.push(nextState);
       }
 
       if (this.canMove(el.way, "Bus")) {
-        nextStation.trans = "Bus";
+        // this.currentTrans = "Bus";
         var nextTimeCostIfBus = el.way.getTimeCost("Bus") + this.timeCost;
 
         //  Check if the next way is the same bus name or not
 
         var nextMoneyIfBus =
-          el.way.busName === this.currentWay?.busName
+          el.way.busName === this.currentWay?.busName &&
+          this.currentTrans == "Bus"
             ? this.currentMoney
             : this.currentMoney - el.way.getMoneyCost("Bus");
         var nextHealth = this.currentHealth - 5 * el.way.dist;
@@ -98,13 +103,14 @@ export default class State {
           thisState,
           el.way,
           this.city,
-          thisState.pathHeuristic + thisState.heuristic()
+          thisState.pathHeuristic + thisState.heuristic(),
+          "Bus"
         );
         nextSates.push(nextState);
       }
 
       if (this.canMove(el.way, "Walking")) {
-        nextStation.trans = "Walking";
+        // this.currentTrans = "Walking";
         var nextTimeCostIfWalking =
           el.way.getTimeCost("Walking") + this.timeCost;
         var nextHealth = this.currentHealth - 10 * el.way.dist;
@@ -118,7 +124,8 @@ export default class State {
           thisState,
           el.way,
           this.city,
-          thisState.pathHeuristic + thisState.heuristic()
+          thisState.pathHeuristic + thisState.heuristic(),
+          "Walking"
         );
         nextSates.push(nextState);
       }

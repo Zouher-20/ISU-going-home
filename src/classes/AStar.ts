@@ -32,7 +32,6 @@ export default class AStar {
       });
     }
   }
-
   getResult(): Array<State> {
     return this.resultStates;
   }
@@ -59,32 +58,24 @@ export default class AStar {
     queue.queue(initState);
     while (queue.length > 0) {
       var currentState: State = queue.dequeue();
-      console.log("queue best state", currentState);
-
       if (currentState.checkIfFinal()) {
-        console.log("finalState", currentState);
-        // this.arrayAns.queue(currentState);
         this.ansState = currentState;
         break;
       }
       const isVisited = this.checkIfVisited(currentState);
-
       if (isVisited) {
         continue;
       } else {
         this.visited.push(currentState);
       }
       var nextStates: Array<State> = currentState.getNextStates(currentState);
-      console.log("queue", queue);
 
       for (let index = 0; index < nextStates.length; index++) {
         const nextState = nextStates[index];
         queue.queue(nextState);
       }
     }
-
     console.log("final astar", this.ansState);
-    console.log("final astar queue", this.arrayAns);
   }
 
   getAnsPath() {
@@ -94,7 +85,7 @@ export default class AStar {
       path.push(state);
       state = state.parent;
     }
-    console.log(path.reverse());
+    if (state) path.push(state);
     return path.reverse();
   }
 }
