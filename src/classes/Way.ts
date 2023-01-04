@@ -10,6 +10,9 @@ export default class Way {
   taxiSpeed: number;
   from: Station;
   to: Station;
+  higherMoney: boolean;
+  higherHealth: boolean;
+  best: boolean;
 
   constructor(
     id: number,
@@ -20,7 +23,10 @@ export default class Way {
     busSpeed: number,
     taxiSpeed: number,
     from: Station,
-    to: Station
+    to: Station,
+    higherMoney: boolean,
+    higherHealth: boolean,
+    best: boolean
   ) {
     this.id = id;
     this.dist = dist;
@@ -31,6 +37,9 @@ export default class Way {
     this.taxiSpeed = taxiSpeed;
     this.from = from;
     this.to = to;
+    this.higherMoney = higherMoney;
+    this.higherHealth = higherHealth;
+    this.best = best;
   }
 
   isEqual(way: Way | null): boolean {
@@ -38,24 +47,24 @@ export default class Way {
   }
 
   getEffortCost(transport: string): number {
-    return transport === "taxi"
+    return transport === "Taxi"
       ? this.dist * -5
-      : transport === "bus"
+      : transport === "Bus"
       ? this.dist * 5
       : this.dist * 10;
   }
   getMoneyCost(transport: string): number {
-    return transport === "taxi"
+    return transport === "Taxi"
       ? this.dist * 1000
-      : transport === "bus"
+      : transport === "Bus"
       ? 400
       : 0;
   }
   getTimeCost(transport: string): number {
-    return transport === "taxi"
-      ? this.dist * this.taxiSpeed
-      : transport === "bus"
-      ? this.dist * this.busSpeed
-      : 5.5 * this.dist;
+    return transport === "Taxi"
+      ? this.dist / this.taxiSpeed
+      : transport === "Bus"
+      ? this.dist / this.busSpeed
+      : this.dist / 5.5;
   }
 }

@@ -5,9 +5,12 @@ export default class AStar {
   resultStates: Array<State>;
   visited: Array<State>;
   ansState: State | null;
+  arrayAns: Array<State>;
+
   constructor() {
     this.resultStates = [];
     this.visited = [];
+    this.arrayAns = [];
     this.ansState = null;
   }
 
@@ -39,8 +42,10 @@ export default class AStar {
       var currentState: State = queue.dequeue();
 
       if (currentState.checkIfFinal()) {
-        this.ansState = currentState;
-        break;
+        console.log("finalState", currentState);
+        this.arrayAns.push(currentState);
+        // this.ansState = currentState;
+        // break;
       }
       const isVisited = this.checkIfVisited(currentState);
 
@@ -50,13 +55,13 @@ export default class AStar {
         this.visited.push(currentState);
       }
       var nextStates: Array<State> = currentState.getNextStates(currentState);
-      console.log(nextStates);
 
       for (let index = 0; index < nextStates.length; index++) {
         const nextState = nextStates[index];
         queue.queue(nextState);
       }
     }
+
     console.log("final astar", this.ansState);
   }
 

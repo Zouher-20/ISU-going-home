@@ -18,6 +18,9 @@
     taxiSpeed: 0,
     from: null,
     to: null,
+    higherMoney: false,
+    higherHealth: false,
+    best: false,
   };
   var way = reactive({ ...initWay });
 
@@ -25,6 +28,7 @@
     taxiTime: 0,
     busTime: 0,
     isHome: false,
+    trans: "",
   };
   var station = reactive({ ...initStation });
 
@@ -33,10 +37,10 @@
       Stations.length,
       station.busTime,
       station.taxiTime,
-      station.isHome
+      station.isHome,
+      station.trans
     );
     Stations.push(toAdd);
-    console.log("addded");
 
     // station = reactive({ ...initStation });
   }
@@ -50,14 +54,16 @@
       way.busSpeed,
       way.taxiSpeed,
       way.from,
-      way.to
+      way.to,
+      way.higherMoney,
+      way.higherHealth,
+      way.best
     );
     ways.push(toAdd);
   }
   function solve() {
     city = new City(Stations, ways);
-    console.log(city.cityGraph.keys);
-    var initState = new State(0, 100000, 100, Stations[0], null, null, city);
+    var initState = new State(0, 5000, 100, Stations[0], null, null, city);
     aStar.solve(initState);
   }
 </script>
@@ -207,8 +213,37 @@
         <button type="submit">Add</button>
       </div>
     </form>
-    <div class="solve-btn">
-      <button @click="solve">solve</button>
+    <div style="display: flex; justify-content: center; margin-top: 10px">
+      <div class="solve-btn" style="margin-right: 40px; margin-top: 10px">
+        <button @click="solve">solve</button>
+      </div>
+      <div class="form-input" style="margin-right: 40px">
+        <label for="higher-money">Higher Money less health </label>
+        <input
+          v-model="way.higherMoney"
+          type="checkbox"
+          id="higher-money"
+          name="higherMoney"
+        />
+      </div>
+      <div class="form-input" style="margin-right: 40px">
+        <label for="higher-health">Higher health less Money</label>
+        <input
+          v-model="way.higherHealth"
+          type="checkbox"
+          id="higher-health"
+          name="higherHealth"
+        />
+      </div>
+      <div class="form-input">
+        <label for="higher-health">the Best Time</label>
+        <input
+          v-model="way.best"
+          type="checkbox"
+          id="higher-health"
+          name="higherHealth"
+        />
+      </div>
     </div>
 
     <!-- <div

@@ -31,10 +31,27 @@ export default class State {
     this.city = city;
     this.pathHeuristic = pathHeuristic;
   }
-
+  heuristic(): number {
+    if (this.currentWay && this.currentWay.higherMoney) {
+      var res = 0;
+      res += 5000 - this.currentMoney;
+      return res;
+    } else if (this.currentWay && this.currentWay.higherHealth) {
+      var res = 0;
+      res += 100 - this.currentHealth;
+      return res;
+    } else {
+      var res = 0;
+      res += 100 - this.currentHealth;
+      res += this.timeCost;
+      // TODO Change 100 to actual init money
+      res += 5000 - this.currentMoney;
+      return res;
+    }
+  }
   canMove(way: Way, transportType: string): boolean {
     if (this.currentHealth < way.getEffortCost(transportType)) return false;
-    if (this.currentHealth < way.getMoneyCost(transportType)) return false;
+    if (this.currentMoney < way.getMoneyCost(transportType)) return false;
     if (transportType === "Bus" && !way.canBus) return false;
     if (transportType === "Taxi" && !way.canTaxi) return false;
 
@@ -44,7 +61,6 @@ export default class State {
   getNextStates(thisState: State): Array<State> {
     var nextSates: Array<State> = [];
     var nextStations = this.city.cityGraph.get(this.currentStation);
-    console.log("next stations", nextStations);
 
     nextStations?.forEach((el) => {
       var nextStation = el.station;
@@ -52,6 +68,7 @@ export default class State {
       // i Create three new States by the three transportations
 
       if (this.canMove(el.way, "Taxi")) {
+        nextStation.trans = "Taxi";
         var nextTimeCostIfTaxi = el.way.getTimeCost("Taxi") + this.timeCost;
         var nextMoneyIfTaxi = this.currentMoney - el.way.getMoneyCost("Taxi");
         var nextHealth = this.currentHealth + 5 * el.way.dist;
@@ -67,9 +84,9 @@ export default class State {
         );
         nextSates.push(nextState);
       }
-      console.log("next station if taxi", this.canMove(el.way, "Taxi"));
 
       if (this.canMove(el.way, "Bus")) {
+        nextStation.trans = "Bus";
         var nextTimeCostIfBus = el.way.getTimeCost("Bus") + this.timeCost;
 
         //  Check if the next way is the same bus name or not
@@ -77,7 +94,7 @@ export default class State {
         var nextMoneyIfBus =
           el.way.busName === this.currentWay?.busName
             ? this.currentMoney
-            : this.currentMoney - el.way.getMoneyCost("bus");
+            : this.currentMoney - el.way.getMoneyCost("Bus");
         var nextHealth = this.currentHealth - 5 * el.way.dist;
         var nextState = new State(
           nextTimeCostIfBus,
@@ -91,15 +108,17 @@ export default class State {
         );
         nextSates.push(nextState);
       }
-      console.log("next station if Bus", this.canMove(el.way, "Bus"));
 
       if (this.canMove(el.way, "Walking")) {
+        nextStation.trans = "Walking";
         var nextTimeCostIfWalking =
           el.way.getTimeCost("Walking") + this.timeCost;
         var nextHealth = this.currentHealth - 10 * el.way.dist;
+        var nextMoneyIfWalking =
+          this.currentMoney - el.way.getMoneyCost("Walking");
         var nextState = new State(
           nextTimeCostIfWalking,
-          this.currentMoney,
+          nextMoneyIfWalking,
           nextHealth,
           nextStation,
           thisState,
@@ -109,7 +128,6 @@ export default class State {
         );
         nextSates.push(nextState);
       }
-      console.log("next station if Walking", this.canMove(el.way, "Walking"));
     });
     return nextSates;
   }
@@ -130,13 +148,5 @@ export default class State {
   checkIfFinal(): boolean {
     if (this.currentStation.isHome) return true;
     return false;
-  }
-  heuristic(): number {
-    var res = 0;
-    res += 100 - this.currentHealth;
-    res += this.timeCost;
-    // TODO Change 100 to actual init money
-    res += 100 - this.currentMoney;
-    return res;
   }
 }
